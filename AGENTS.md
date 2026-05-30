@@ -37,8 +37,8 @@ To support continuous self-improvement across sessions, the **Main Agent** manag
 
 ### 1. Pre-Game: Load Memory & Lessons
 Before calling `new_game` to start a match:
-1. Read the contents of `data/chess_journal.json`.
-2. Print a neat summary of all `active_lessons` (the active cap of 5 rules) in the chat.
+1. Run the print subcommand of our journal tool: `uv run python scripts/update_journal.py print-lessons`
+2. Print the exact printed output directly in the chat to maintain context.
 3. Keep these preventative rules in active context to avoid repeating past blunders.
 
 ### 2. Pre-Move Calculation Protocol
@@ -51,7 +51,9 @@ Before playing any move using the `make_move` tool, the **Main Agent** must sequ
 3. **Blunder Auditor**:
    - **Tool Call**: `invoke_subagent(Role="Blunder Auditor", Prompt="Audit the candidate moves: [Insert Tactical Calculator Output] against the active lessons: [Insert active_lessons]. Complete the Safety Checklist. Current FEN: [Insert Board FEN]")`
 
-Output the structured results in the chat and write the exact synthesized block to `current_calculations.independent_analysis` in `data/chess_journal.json`. Set `current_calculations.pre_move_checklist_passed` to `true`, `current_calculations.current_game_id` to the active `game_id`, and `current_calculations.last_move_played` to your selected move.
+Output the structured results in the chat. Write the exact synthesized block to a temporary file `temp_pre_move.txt`, write it to the journal by running:
+`uv run python scripts/update_journal.py pre-move --game-id "<game_id>" --move "<move>" < temp_pre_move.txt`
+And delete `temp_pre_move.txt` once the write completes successfully.
 
 **Pre-Move Calculation Block Format:**
 ```markdown
@@ -86,11 +88,10 @@ When `is_game_over: true`, the game has ended:
 1. Review the full game move history.
 2. Identify 1-3 key tactical turning points or calculation mistakes where thinking failed.
 3. Formulate generalized **Preventative Rules** to avoid similar blunders in the future.
-4. Update `data/chess_journal.json`:
-   - Increment `total_games_played` by `1`.
-   - Update `current_learning_elo` to the rating of the opponent played.
-   - For each new lesson, add it in compact format to `active_lessons` (`id`, `motif`, `preventative_rule`). Also append it in full metadata format to `archived_lessons` (`id`, `timestamp`, `game_id`, `elo_encountered`, `motif`, `concept`, `mistake_description`, `preventative_rule`).
-   - If the size of `active_lessons` exceeds **5**, pop the oldest lessons from `active_lessons` until the size is exactly 5.
-   - Reset `current_calculations` properties (`current_game_id`, `last_move_played` to `null`, `independent_analysis` to `"Initial state: Waiting for first move."`, and `pre_move_checklist_passed` to `false`).
+4. Update `data/chess_journal.json` safely by running our database utility:
+   - Write the mistake description to a temporary file `temp_mistake.txt`.
+   - Update the database by running:
+     `uv run python scripts/update_journal.py post-game --game-id "<game_id>" --elo <elo> --motif "<motif>" --concept "<concept>" --rule "<preventative_rule>" < temp_mistake.txt`
+   - Delete `temp_mistake.txt` once the transaction finishes successfully.
 5. Share your post-game self-analysis and the newly saved lessons in the chat.
 
