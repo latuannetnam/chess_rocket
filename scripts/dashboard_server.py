@@ -68,7 +68,7 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8088, help="Port (default: 8088)")
     args = parser.parse_args()
 
-    server = http.server.HTTPServer(("127.0.0.1", args.port), DashboardHandler)
+    server = http.server.HTTPServer(("0.0.0.0", args.port), DashboardHandler)
     print(f"Chess Rocket Dashboard: http://localhost:{args.port}")
     try:
         server.serve_forever()
