@@ -50,14 +50,19 @@ Before playing any move using the `make_move` tool:
 **Pre-Move Calculation Block Format:**
 ```markdown
 ### 🧠 Pre-Move Analysis (Move X)
-*   **Active Lessons Applied**: [Refer to preventative rules from data/chess_journal.json]
+*   **Active Lessons Applied**: [List all active lesson IDs from data/chess_journal.json]
 *   **Opponent's Threats**: [Analyze what Stockfish's last move threatens]
-*   **Candidate Moves**: 
-    1. [Move A] - [Quick pro/con]
-    2. [Move B] - [Quick pro/con]
+*   **Candidate Moves & Blunder-Prevention Audit**: 
+    1. [Move A]
+       - *Blunder Audit*: [Check if Move A violates any active rules in your lessons database (e.g., "Safe from discovered attacks? Yes. Defensive capture safety verified? Yes.")]
+       - *Pros/Cons*: [Quick pro/con]
+    2. [Move B]
+       - *Blunder Audit*: [Verify against active rules in lessons database]
+       - *Pros/Cons*: [Quick pro/con]
 *   **Calculation Line**: 
-    *   *If I play [Move A] -> Stockfish replies [Move A1] -> I reply [Move A2]*
+    *   *If I play [Selected Move] -> Stockfish replies [Move 1] -> I reply [Move 2]*
 *   **Safety Checklist**:
+    *   [x] Stored lessons blunder audit passed for the selected move.
     *   [x] Target square is safe and not attacked by hidden long-range pieces.
     *   [x] No hanging major pieces.
     *   [x] King safety / back-rank checkmate threats assessed.
