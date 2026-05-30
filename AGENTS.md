@@ -55,12 +55,15 @@ If the `invoke_subagent` tool is **not** registered or available in the current 
 3. **Blunder Auditor**:
    - **Tool Call**: `invoke_subagent(Role="Blunder Auditor", Prompt="Audit the candidate moves: [Insert Tactical Calculator Output] against the active lessons: [Insert active_lessons]. Complete the Safety Checklist. Current FEN: [Insert Board FEN]", TypeName="self")`
 
-Output the structured results in the chat. Write the exact synthesized block to the journal by running the update command with a shell Heredoc (replacing `<game_id>`, `<move>`, and the block body content accordingly):
+Output the structured results in the chat. Update the journal database directly by modifying the `current_calculations` object in `data/chess_journal.json` using your native file-editing tools (e.g. `write_to_file` or `replace_file_content`):
 
-```bash
-uv run python scripts/update_journal.py pre-move --game-id "<game_id>" --move "<move>" << 'EOF'
-[Insert exact synthesized block here]
-EOF
+```json
+"current_calculations": {
+  "current_game_id": "<game_id>",
+  "last_move_played": "<move>",
+  "independent_analysis": "[Insert exact synthesized block here]",
+  "pre_move_checklist_passed": true
+}
 ```
 
 **Pre-Move Calculation Block Format:**
@@ -96,10 +99,12 @@ When `is_game_over: true`, the game has ended:
 1. Review the full game move history.
 2. Identify 1-3 key tactical turning points or calculation mistakes where thinking failed.
 3. Formulate generalized **Preventative Rules** to avoid similar blunders in the future.
-4. Update `data/chess_journal.json` safely by running our database utility:
-   - Write the mistake description to a temporary file `temp_mistake.txt`.
-   - Update the database by running:
-     `uv run python scripts/update_journal.py post-game --game-id "<game_id>" --elo <elo> --motif "<motif>" --concept "<concept>" --rule "<preventative_rule>" < temp_mistake.txt`
-   - Delete `temp_mistake.txt` once the transaction finishes successfully.
+4. Update `data/chess_journal.json` safely by modifying it directly using your native file-editing tools:
+   - Increment `total_games_played` by 1.
+   - Set `current_learning_elo` to the opponent ELO.
+   - Find the maximum sequential number from all existing lessons in both `active_lessons` and `archived_lessons` arrays, and compute the next lesson ID (e.g. `lesson_012`).
+   - Append the new lesson to `active_lessons` (id, motif, preventative_rule) and `archived_lessons` (id, timestamp, game_id, elo_encountered, motif, concept, mistake_description, preventative_rule).
+   - If `len(active_lessons) > 5`, cap the active lessons list to exactly the last 5.
+   - Reset `current_calculations` to the waiting state.
 5. Share your post-game self-analysis and the newly saved lessons in the chat.
 

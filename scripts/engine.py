@@ -46,7 +46,7 @@ _MATE_SCORE = 10000
 def _find_stockfish() -> str:
     """Auto-detect Stockfish binary path.
 
-    Checks known install paths, then falls back to PATH lookup.
+    Checks environmental variable, known install paths, then falls back to PATH lookup.
 
     Returns:
         Path to Stockfish binary.
@@ -54,6 +54,11 @@ def _find_stockfish() -> str:
     Raises:
         FileNotFoundError: If Stockfish is not found anywhere.
     """
+    import os
+    env_path = os.environ.get("STOCKFISH_PATH")
+    if env_path and Path(env_path).is_file():
+        return env_path
+
     for path_str in _STOCKFISH_PATHS:
         if Path(path_str).is_file():
             return path_str
