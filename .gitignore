@@ -23,7 +23,7 @@ data/openings_trie.json
 Thumbs.db
 
 # Claude Code
-.claude/
+.claude/settings.local.json
 
 # Local agent/tooling state
 .agents/
