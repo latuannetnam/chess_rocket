@@ -42,14 +42,18 @@ Before calling `new_game` to start a match:
 3. Keep these preventative rules in active context to avoid repeating past blunders.
 
 ### 2. Pre-Move Calculation Protocol
-Before playing any move using the `make_move` tool, the **Main Agent** must sequentially invoke three specialized sub-agents using the `invoke_subagent` tool:
+Before playing any move using the `make_move` tool, the **Main Agent** must sequentially invoke three specialized sub-agents using the `invoke_subagent` tool.
 
+#### ⚠️ Runtime Fallback Clause
+If the `invoke_subagent` tool is **not** registered or available in the current environment's toolset (e.g., in some Gemini CLI configurations or custom tool-restricted runtimes), the Main Agent must **simulate** the sub-agents sequentially in-line within its own thought process, adopting each persona and generating their respective outputs. The final Pre-Move Calculation Block format must remain identical in either case.
+
+#### Sub-Agent Execution Pipeline
 1. **Positional Strategist**:
-   - **Tool Call**: `invoke_subagent(Role="Positional Strategist", Prompt="Evaluate the current chess position. Focus on long-term structures, space advantages, king safety, and plans. Identify key squares or pieces to target or defend. Current FEN: [Insert Board FEN]")`
+   - **Tool Call**: `invoke_subagent(Role="Positional Strategist", Prompt="Evaluate the current chess position. Focus on long-term structures, space advantages, king safety, and plans. Identify key squares or pieces to target or defend. Current FEN: [Insert Board FEN]", TypeName="self")`
 2. **Tactical Calculator**:
-   - **Tool Call**: `invoke_subagent(Role="Tactical Calculator", Prompt="Identify opponent threats and calculate candidate moves. Consider this positional context: [Insert Positional Strategist Output]. Current FEN: [Insert Board FEN]")`
+   - **Tool Call**: `invoke_subagent(Role="Tactical Calculator", Prompt="Identify opponent threats and calculate candidate moves. Consider this positional context: [Insert Positional Strategist Output]. Current FEN: [Insert Board FEN]", TypeName="self")`
 3. **Blunder Auditor**:
-   - **Tool Call**: `invoke_subagent(Role="Blunder Auditor", Prompt="Audit the candidate moves: [Insert Tactical Calculator Output] against the active lessons: [Insert active_lessons]. Complete the Safety Checklist. Current FEN: [Insert Board FEN]")`
+   - **Tool Call**: `invoke_subagent(Role="Blunder Auditor", Prompt="Audit the candidate moves: [Insert Tactical Calculator Output] against the active lessons: [Insert active_lessons]. Complete the Safety Checklist. Current FEN: [Insert Board FEN]", TypeName="self")`
 
 Output the structured results in the chat. Write the exact synthesized block to a temporary file `temp_pre_move.txt`, write it to the journal by running:
 `uv run python scripts/update_journal.py pre-move --game-id "<game_id>" --move "<move>" < temp_pre_move.txt`
