@@ -25,6 +25,13 @@ Thumbs.db
 # Claude Code
 .claude/
 
+# Local agent/tooling state
+.agents/
+.envrc
+.mcp.json
+CLAUDE copy.md
+skills-lock.json
+
 # OMC state
 .omc/
 

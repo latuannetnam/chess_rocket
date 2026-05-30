@@ -40,10 +40,10 @@
   .header-stats { display: flex; gap: 16px; font-size: 0.9rem; color: var(--text-dim); }
   .main {
     display: grid;
-    grid-template-columns: minmax(320px, 480px) 1fr;
+    grid-template-columns: minmax(320px, 480px) 1.2fr 1fr;
     gap: 16px;
     padding: 16px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
   }
   .board-col { display: flex; flex-direction: column; gap: 12px; }
@@ -136,6 +136,110 @@
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+
+  /* Premium Glassmorphism Journal Sidebar */
+  .journal-panel {
+    background: rgba(22, 33, 62, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(233, 69, 96, 0.25);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+  .journal-panel h2 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  .thought-box {
+    background: rgba(15, 52, 96, 0.25);
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 3px solid var(--accent);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #e0e0e0;
+  }
+  .checklist-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.8rem;
+  }
+  .checklist-icon {
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .checklist-icon.passed {
+    color: var(--green);
+  }
+  .checklist-icon.pending {
+    color: var(--yellow);
+  }
+  .lesson-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .lesson-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+  }
+  .lesson-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(233, 69, 96, 0.4);
+    transform: translateY(-2px);
+  }
+  .lesson-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--yellow);
+    margin-bottom: 6px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+    padding-bottom: 4px;
+  }
+  .lesson-motif {
+    color: var(--accent);
+  }
+  .lesson-rule {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-top: 6px;
+    font-style: italic;
+    background: rgba(233, 69, 96, 0.1);
+    padding: 6px;
+    border-radius: 4px;
+    border-left: 2px solid var(--accent);
+  }
+  .lesson-desc {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
 </style>
 </head>
 <body>
@@ -219,6 +323,41 @@
     <div class="game-over-banner" id="game-over">
       <div class="game-over-result" id="game-over-result"></div>
       <div class="game-over-details" id="game-over-details"></div>
+    </div>
+  </div>
+  
+  <!-- New Chess Journal Sidebar -->
+  <div class="journal-panel">
+    <div>
+      <h2>🧠 Live Thoughts & Analysis</h2>
+      <div class="thought-box" id="journal-thoughts">
+        Initial state: Waiting for first move.
+      </div>
+    </div>
+    <div>
+      <h2>🛡️ Pre-Move Safety Checklist</h2>
+      <div class="checklist-container">
+        <div class="checklist-item">
+          <span class="checklist-icon" id="check-square-icon">⚪</span>
+          <span>Target square safety validated</span>
+        </div>
+        <div class="checklist-item">
+          <span class="checklist-icon" id="check-hanging-icon">⚪</span>
+          <span>No hanging major pieces</span>
+        </div>
+        <div class="checklist-item">
+          <span class="checklist-icon" id="check-king-icon">⚪</span>
+          <span>King safety / back-rank check assessed</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h2>📜 Lessons Learned & memory</h2>
+      <div class="lesson-list" id="journal-lessons">
+        <div style="font-size: 0.8rem; color: var(--text-dim); text-align: center; padding: 20px 0;">
+          No active lessons learned yet. Play games to train!
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -447,8 +586,66 @@
     }
   }
 
+  async function pollJournal() {
+    if (!gameActive) return;
+    try {
+      const resp = await fetch('/api/journal');
+      if (!resp.ok) return;
+      const journal = await resp.json();
+      if (!journal) return;
+
+      // Update thoughts
+      const thoughtsEl = document.getElementById('journal-thoughts');
+      if (thoughtsEl && journal.current_calculations) {
+        thoughtsEl.textContent = journal.current_calculations.independent_analysis || "Initial state: Waiting for first move.";
+        
+        // Update checklist
+        const passed = journal.current_calculations.pre_move_checklist_passed;
+        const iconSquare = document.getElementById('check-square-icon');
+        const iconHanging = document.getElementById('check-hanging-icon');
+        const iconKing = document.getElementById('check-king-icon');
+        
+        if (passed) {
+          if (iconSquare) { iconSquare.textContent = '🟢'; iconSquare.className = 'checklist-icon passed'; }
+          if (iconHanging) { iconHanging.textContent = '🟢'; iconHanging.className = 'checklist-icon passed'; }
+          if (iconKing) { iconKing.textContent = '🟢'; iconKing.className = 'checklist-icon passed'; }
+        } else {
+          if (iconSquare) { iconSquare.textContent = '⚪'; iconSquare.className = 'checklist-icon pending'; }
+          if (iconHanging) { iconHanging.textContent = '⚪'; iconHanging.className = 'checklist-icon pending'; }
+          if (iconKing) { iconKing.textContent = '⚪'; iconKing.className = 'checklist-icon pending'; }
+        }
+      }
+
+      // Update lessons
+      const lessonsEl = document.getElementById('journal-lessons');
+      if (lessonsEl && journal.lessons_learned) {
+        if (journal.lessons_learned.length === 0) {
+          lessonsEl.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-dim); text-align: center; padding: 20px 0;">No active lessons learned yet. Play games to train!</div>';
+        } else {
+          let html = '';
+          journal.lessons_learned.forEach(lesson => {
+            html += '<div class="lesson-card">';
+            html += '  <div class="lesson-header">';
+            html += '    <span class="lesson-motif">' + esc(lesson.motif || 'Tactics') + '</span>';
+            html += '    <span>Elo: ' + esc(lesson.elo_encountered || 1000) + '</span>';
+            html += '  </div>';
+            html += '  <div style="font-size: 0.85rem; font-weight: 600; color: var(--yellow); margin-bottom: 4px;">' + esc(lesson.concept || 'Mistake') + '</div>';
+            html += '  <div class="lesson-desc">' + esc(lesson.mistake_description || '') + '</div>';
+            html += '  <div class="lesson-rule">💡 ' + esc(lesson.preventative_rule || '') + '</div>';
+            html += '</div>';
+          });
+          lessonsEl.innerHTML = html;
+        }
+      }
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+
   setInterval(poll, 500);
+  setInterval(pollJournal, 1000);
   poll();
+  pollJournal();
 })();
 </script>
 </body>

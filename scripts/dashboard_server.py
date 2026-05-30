@@ -27,6 +27,8 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             self._serve_json(_DATA_DIR / "current_game.json")
         elif self.path == "/api/progress":
             self._serve_json(_DATA_DIR / "progress.json")
+        elif self.path == "/api/journal":
+            self._serve_json(_DATA_DIR / "chess_journal.json")
         else:
             self.send_error(404)
 
