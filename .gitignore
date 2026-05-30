@@ -49,3 +49,4 @@ skills-lock.json
 .sidecar/
 archive/
 .agents/mcp_config.json
+.codex/config.toml
