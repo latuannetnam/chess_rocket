@@ -48,3 +48,4 @@ skills-lock.json
 # Build artifacts
 .sidecar/
 archive/
+.agents/mcp_config.json
