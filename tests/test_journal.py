@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -37,7 +37,14 @@ def test_journal_schema_structure(temp_journal_cleaner):
     test_data = {
         "total_games_played": 1,
         "current_learning_elo": 1000,
-        "lessons_learned": [
+        "active_lessons": [
+            {
+                "id": "lesson_001",
+                "motif": "Open File Danger",
+                "preventative_rule": "Look before you leap."
+            }
+        ],
+        "archived_lessons": [
             {
                 "id": "lesson_001",
                 "timestamp": "2026-05-30T10:15:30Z",
@@ -62,7 +69,8 @@ def test_journal_schema_structure(temp_journal_cleaner):
     # Read and parse
     read_data = json.loads(_JOURNAL_PATH.read_text(encoding="utf-8"))
     assert read_data["total_games_played"] == 1
-    assert len(read_data["lessons_learned"]) == 1
+    assert len(read_data["active_lessons"]) == 1
+    assert len(read_data["archived_lessons"]) == 1
     assert read_data["current_calculations"]["pre_move_checklist_passed"] is True
     assert read_data["current_calculations"]["last_move_played"] == "e4"
 
@@ -72,7 +80,8 @@ def test_dashboard_handler_api_journal(temp_journal_cleaner):
     test_data = {
         "total_games_played": 2,
         "current_learning_elo": 1200,
-        "lessons_learned": [],
+        "active_lessons": [],
+        "archived_lessons": [],
         "current_calculations": {
             "current_game_id": None,
             "last_move_played": None,
@@ -105,4 +114,3 @@ def test_dashboard_handler_api_journal(temp_journal_cleaner):
     
     assert written_json["total_games_played"] == 2
     assert written_json["current_learning_elo"] == 1200
-
