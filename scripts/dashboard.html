@@ -618,22 +618,39 @@
 
       // Update lessons
       const lessonsEl = document.getElementById('journal-lessons');
-      if (lessonsEl && journal.lessons_learned) {
-        if (journal.lessons_learned.length === 0) {
-          lessonsEl.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-dim); text-align: center; padding: 20px 0;">No active lessons learned yet. Play games to train!</div>';
-        } else {
-          let html = '';
-          journal.lessons_learned.forEach(lesson => {
-            html += '<div class="lesson-card">';
-            html += '  <div class="lesson-header">';
-            html += '    <span class="lesson-motif">' + esc(lesson.motif || 'Tactics') + '</span>';
-            html += '    <span>Elo: ' + esc(lesson.elo_encountered || 1000) + '</span>';
+      if (lessonsEl) {
+        let html = '';
+        if (journal.active_lessons && journal.active_lessons.length > 0) {
+          html += '<h3 style="font-size: 0.95rem; color: var(--yellow); margin-top: 0; margin-bottom: 10px;">🎯 Active Lessons (Audited in Play)</h3>';
+          journal.active_lessons.forEach(lesson => {
+            html += '<div class="lesson-card" style="border-left: 3px solid var(--yellow); margin-bottom: 12px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 4px;">';
+            html += '  <div class="lesson-header" style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px;">';
+            html += '    <span class="lesson-motif" style="background: rgba(234,179,8,0.1); color: var(--yellow); padding: 2px 6px; border-radius: 3px; font-weight: 600;">' + esc(lesson.motif || 'Tactics') + '</span>';
+            html += '    <span>Active</span>';
             html += '  </div>';
-            html += '  <div style="font-size: 0.85rem; font-weight: 600; color: var(--yellow); margin-bottom: 4px;">' + esc(lesson.concept || 'Mistake') + '</div>';
-            html += '  <div class="lesson-desc">' + esc(lesson.mistake_description || '') + '</div>';
-            html += '  <div class="lesson-rule">💡 ' + esc(lesson.preventative_rule || '') + '</div>';
+            html += '  <div class="lesson-rule" style="font-size: 0.85rem; font-style: italic; color: var(--text-light);">💡 ' + esc(lesson.preventative_rule || '') + '</div>';
             html += '</div>';
           });
+        }
+        
+        if (journal.archived_lessons && journal.archived_lessons.length > 0) {
+          html += '<h3 style="font-size: 0.95rem; color: var(--text-dim); margin-top: 20px; margin-bottom: 10px;">📦 Archived Lessons</h3>';
+          journal.archived_lessons.forEach(lesson => {
+            html += '<div class="lesson-card" style="opacity: 0.7; border-left: 3px solid var(--text-dim); margin-bottom: 12px; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 4px;">';
+            html += '  <div class="lesson-header" style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px;">';
+            html += '    <span class="lesson-motif" style="background: rgba(255,255,255,0.05); color: var(--text-dim); padding: 2px 6px; border-radius: 3px;">' + esc(lesson.motif || 'Tactics') + '</span>';
+            html += '    <span>Elo: ' + esc(lesson.elo_encountered || 1000) + '</span>';
+            html += '  </div>';
+            html += '  <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-dim); margin-bottom: 4px;">' + esc(lesson.concept || 'Mistake') + '</div>';
+            html += '  <div class="lesson-desc" style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px; line-height: 1.3;">' + esc(lesson.mistake_description || '') + '</div>';
+            html += '  <div class="lesson-rule" style="font-size: 0.8rem; font-style: italic; color: var(--text-dim);">💡 ' + esc(lesson.preventative_rule || '') + '</div>';
+            html += '</div>';
+          });
+        }
+        
+        if (!html) {
+          lessonsEl.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-dim); text-align: center; padding: 20px 0;">No active lessons learned yet. Play games to train!</div>';
+        } else {
           lessonsEl.innerHTML = html;
         }
       }
