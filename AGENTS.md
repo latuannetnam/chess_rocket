@@ -55,9 +55,13 @@ If the `invoke_subagent` tool is **not** registered or available in the current 
 3. **Blunder Auditor**:
    - **Tool Call**: `invoke_subagent(Role="Blunder Auditor", Prompt="Audit the candidate moves: [Insert Tactical Calculator Output] against the active lessons: [Insert active_lessons]. Complete the Safety Checklist. Current FEN: [Insert Board FEN]", TypeName="self")`
 
-Output the structured results in the chat. Write the exact synthesized block to a temporary file `temp_pre_move.txt`, write it to the journal by running:
-`uv run python scripts/update_journal.py pre-move --game-id "<game_id>" --move "<move>" < temp_pre_move.txt`
-And delete `temp_pre_move.txt` once the write completes successfully.
+Output the structured results in the chat. Write the exact synthesized block to the journal by running the update command with a shell Heredoc (replacing `<game_id>`, `<move>`, and the block body content accordingly):
+
+```bash
+uv run python scripts/update_journal.py pre-move --game-id "<game_id>" --move "<move>" << 'EOF'
+[Insert exact synthesized block here]
+EOF
+```
 
 **Pre-Move Calculation Block Format:**
 ```markdown
