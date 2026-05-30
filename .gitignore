@@ -26,7 +26,6 @@ Thumbs.db
 .claude/settings.local.json
 
 # Local agent/tooling state
-.agents/
 .envrc
 .mcp.json
 CLAUDE copy.md
